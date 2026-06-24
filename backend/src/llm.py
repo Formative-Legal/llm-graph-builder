@@ -102,13 +102,24 @@ def get_llm(model: str):
             llm = ChatGroq(api_key=api_key, model_name=model_name, temperature=0,callbacks=callback_manager)
 
         elif "BEDROCK" in model:
-            model_name, aws_access_key, aws_secret_key, region_name = env_value.split(",")
-            bedrock_client = boto3.client(
-                service_name="bedrock-runtime",
-                region_name=region_name,
-                aws_access_key_id=aws_access_key,
-                aws_secret_access_key=aws_secret_key,
-            )
+            parts = [part.strip() for part in env_value.split(",")]
+            if len(parts) == 2:
+                model_name, region_name = parts
+                bedrock_client = boto3.client(service_name="bedrock-runtime", region_name=region_name)
+            elif len(parts) == 4:
+                model_name, aws_access_key, aws_secret_key, region_name = parts
+                bedrock_client = boto3.client(
+                    service_name="bedrock-runtime",
+                    region_name=region_name,
+                    aws_access_key_id=aws_access_key,
+                    aws_secret_access_key=aws_secret_key,
+                )
+            else:
+                raise ValueError(
+                    f"Environment variable '{env_key}' must be either "
+                    "'model_id,region_name' for IAM role credentials or "
+                    "'model_id,aws_access_key,aws_secret_key,region_name'."
+                )
 
             llm = ChatBedrock(
                 client=bedrock_client,region_name=region_name, model_id=model_name, model_kwargs=dict(temperature=0),callbacks=callback_manager, 

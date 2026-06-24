@@ -41,21 +41,22 @@ Create the App Runner service from the ECR `latest` image. Runtime port is `8000
 Set at least one model config supported by the backend. Example:
 
 ```env
-LLM_MODEL_CONFIG_ANTHROPIC_CLAUDE_4_6_SONNET=claude-sonnet-4-6,<anthropic-api-key>
+LLM_MODEL_CONFIG_BEDROCK_CLAUDE_SONNET_4_6=eu.anthropic.claude-sonnet-4-6-v1:0,eu-west-1
 FORMATIVE_SCHEMA_API_TOKEN=<long-random-shared-secret>
 TRACK_USER_USAGE=false
 GCS_FILE_CACHE=false
 GCP_LOG_METRICS_ENABLED=False
 ```
 
-Store `FORMATIVE_SCHEMA_API_TOKEN` and model provider keys in AWS Secrets Manager or App Runner
+Attach an App Runner instance role with `bedrock:InvokeModel` and `bedrock:InvokeModelWithResponseStream`
+for the selected Bedrock model. Store `FORMATIVE_SCHEMA_API_TOKEN` in AWS Secrets Manager or App Runner
 secrets, not in GitHub variables.
 
 After deployment, configure cockpit:
 
 ```env
 MATRIX_GRAPH_BUILDER_URL=https://<private-graph-builder-backend>
-MATRIX_GRAPH_BUILDER_MODEL=anthropic_claude_4_6_sonnet
+MATRIX_GRAPH_BUILDER_MODEL=bedrock_claude_sonnet_4_6
 MATRIX_GRAPH_BUILDER_TOKEN=<same-secret-as-FORMATIVE_SCHEMA_API_TOKEN>
 ```
 
