@@ -1,6 +1,11 @@
 name: build backend image
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - ".github/workflows/build-backend-image.yml"
   workflow_dispatch:
 
 permissions:
