@@ -1,6 +1,7 @@
 import asyncio
 import base64
 import gc
+import hmac
 import json
 import logging
 import os
@@ -10,7 +11,7 @@ from typing import List
 
 import uvicorn
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, File, Form, Request, UploadFile
+from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi_health import health
@@ -49,6 +50,18 @@ from Secweb.XFrameOptions import XFrame
 load_dotenv(override=True)
 
 logger = CustomLogger()
+
+
+def require_formative_schema_api_token(authorization: str | None = Header(default=None)) -> None:
+    expected_token = os.environ.get("FORMATIVE_SCHEMA_API_TOKEN")
+    if not expected_token:
+        raise HTTPException(status_code=503, detail="FORMATIVE_SCHEMA_API_TOKEN is not configured")
+
+    auth_scheme, _, supplied_token = (authorization or "").partition(" ")
+    if auth_scheme.lower() != "bearer" or not supplied_token:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    if not hmac.compare_digest(supplied_token, expected_token):
+        raise HTTPException(status_code=401, detail="Unauthorized")
 CHUNK_DIR = os.path.join(os.path.dirname(__file__), "chunks")
 MERGED_DIR = os.path.join(os.path.dirname(__file__), "merged_files")
 
@@ -794,7 +807,8 @@ async def populate_graph_schema(
     model=Form(None),
     is_schema_description_checked=Form(None),
     is_local_storage=Form(None),
-    email=Form(None)
+    email=Form(None),
+    _formative_schema_auth: None = Depends(require_formative_schema_api_token),
 ):
     """Populate the graph schema from input text."""
     try:
