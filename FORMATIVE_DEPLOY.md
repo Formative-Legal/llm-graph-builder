@@ -41,7 +41,8 @@ Create the App Runner service from the ECR `latest` image. Runtime port is `8000
 Set at least one model config supported by the backend. Example:
 
 ```env
-LLM_MODEL_CONFIG_BEDROCK_CLAUDE_SONNET_4_6=eu.anthropic.claude-sonnet-4-6-v1:0,eu-west-1
+LLM_MODEL_CONFIG_BEDROCK_CLAUDE_SONNET_4_6=eu.anthropic.claude-sonnet-4-6,eu-west-1
+LLM_MODEL_CONFIG_BEDROCK_NOVA_LITE_V1=eu.amazon.nova-lite-v1:0,eu-west-1
 FORMATIVE_SCHEMA_API_TOKEN=<long-random-shared-secret>
 TRACK_USER_USAGE=false
 GCS_FILE_CACHE=false
@@ -50,7 +51,8 @@ GCP_LOG_METRICS_ENABLED=False
 
 Attach an App Runner instance role with `bedrock:InvokeModel` and `bedrock:InvokeModelWithResponseStream`
 for the selected Bedrock model. Store `FORMATIVE_SCHEMA_API_TOKEN` in AWS Secrets Manager or App Runner
-secrets, not in GitHub variables.
+secrets, not in GitHub variables. If Claude model access is blocked by AWS billing/Marketplace setup,
+`bedrock_nova_lite_v1` is the AWS-native fallback model verified for the schema endpoint.
 
 After deployment, configure cockpit:
 
@@ -58,6 +60,12 @@ After deployment, configure cockpit:
 MATRIX_GRAPH_BUILDER_URL=https://<private-graph-builder-backend>
 MATRIX_GRAPH_BUILDER_MODEL=bedrock_claude_sonnet_4_6
 MATRIX_GRAPH_BUILDER_TOKEN=<same-secret-as-FORMATIVE_SCHEMA_API_TOKEN>
+```
+
+The deployed AWS App Runner service is currently:
+
+```env
+MATRIX_GRAPH_BUILDER_URL=https://nytuxdnv6f.eu-west-1.awsapprunner.com
 ```
 
 Then verify from `etl-cockpit`:
