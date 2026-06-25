@@ -54,6 +54,10 @@ for the selected Bedrock model. Store `FORMATIVE_SCHEMA_API_TOKEN` in AWS Secret
 secrets, not in GitHub variables. If Claude model access is blocked by AWS billing/Marketplace setup,
 `bedrock_nova_lite_v1` is the AWS-native fallback model verified for the schema endpoint.
 
+For Anthropic models served through AWS Marketplace, the App Runner instance role also needs
+`aws-marketplace:ViewSubscriptions` and `aws-marketplace:Subscribe`; AWS may use these on first
+runtime invocation to activate the model for that role/account.
+
 After deployment, configure cockpit:
 
 ```env
